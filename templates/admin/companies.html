@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}All Companies{% endblock %}
+
+{% block content %}
+
+<form method="GET" class="search-wrap">
+    <div class="search-bar">
+        <input
+            type="text"
+            name="search"
+            placeholder="Search company by name"
+            value="{{ request.args.get('search', '') }}"
+        >
+        <button type="submit">🔍</button>
+    </div>
+</form>
+
+<h2>All Companies</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Company Name</th>
+            <th>HR Contact</th>
+            <th>Website</th>
+            <th>Description</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Blacklisted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for company in companies %}
+        <tr>
+            <td>{{ company.id }}</td>
+            <td>{{ company.company_name }}</td>
+            <td>{{ company.hr_contact }}</td>
+            <td>
+                {% if company.website %}
+                    <a href="{{ company.website }}" target="_blank">
+                        {{ company.website[:30] }}{% if company.website|length > 30 %}...{% endif %}
+                    </a>
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td>{{ company.description }}</td>
+            <td>{{ company.user.email }}</td>
+            <td>
+                 {% if company.user.approval_status == "Approved" %}
+                    <span class="text-success">Approved</span>
+                {% elif company.user.approval_status == "Rejected" %}
+                    <span class="text-danger">Rejected</span>
+                {% else %}
+                    <span class="text-warning">Pending</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if company.user.is_blacklisted %}
+                    <span class="text-danger">Yes</span>
+                {% else %}
+                    No
+                {% endif %}
+            </td>
+            <td>
+                <a href="/admin/approve/company/{{ company.id }}" class="btn btn-sm btn-success">Approve</a>
+                <a href="/admin/reject/company/{{ company.id }}" class="btn btn-sm btn-warning">Reject</a>
+                <a href="/admin/blacklist/company/{{ company.id }}" class="btn btn-sm btn-danger">Blacklist</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/admin/dashboard" class="logout">Back to Dashboard</a>
+
+{% endblock %}

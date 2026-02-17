@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Applications for Drive #{{ drive.id }} - {{ drive.job_title }}</h2>
+
+<table>
+    <tr>
+        <th>App ID</th>
+        <th>Student</th>
+        <th>Dept</th>
+        <th>CGPA</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for a in applications %}
+    <tr>
+        <td>{{ a.id }}</td>
+        <td>{{ a.student.user.name }}</td>
+        <td>{{ a.student.department }}</td>
+        <td>{{ a.student.cgpa }}</td>
+        <td>{{ a.status }}</td>
+        <td>
+            <a href="{{ url_for('company_update_application_status', app_id=a.id, status='Shortlisted') }}">Shortlist</a> |
+            <a href="{{ url_for('company_update_application_status', app_id=a.id, status='Selected') }}">Select</a> |
+            <a href="{{ url_for('company_update_application_status', app_id=a.id, status='Rejected') }}">Reject</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a class="back-link" href="{{ url_for('company_dashboard') }}">Back</a>
+{% endblock %}

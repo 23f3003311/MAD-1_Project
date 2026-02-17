@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Edit Drive</h2>
+
+<form method="POST">
+    <input name="job_title" value="{{ drive.job_title }}" required>
+    <textarea name="job_description" required>{{ drive.job_description }}</textarea>
+    <input name="eligibility" value="{{ drive.eligibility }}" required>
+    <input type="date" name="deadline" value="{{ drive.application_deadline }}" required>
+    <button type="submit">Save Changes</button>
+</form>
+
+<a class="back-link" href="{{ url_for('company_dashboard') }}">Back</a>
+{% endblock %}

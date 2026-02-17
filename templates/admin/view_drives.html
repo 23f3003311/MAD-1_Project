@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>All Placement Drives</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Company</th>
+            <th>Job Title</th>
+            <th>Description</th>
+            <th>Eligibility</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for drive in drives %}
+        <tr>
+            <td>{{ drive.id }}</td>
+            <td>{{ drive.company.company_name }}</td>
+            <td>{{ drive.job_title }}</td>
+
+            <!-- Shortened description for better UI -->
+            <td>
+                {{ drive.job_description[:40] }}
+                {% if drive.job_description|length > 40 %}...{% endif %}
+            </td>
+
+            <td>{{ drive.eligibility }}</td>
+            <td>{{ drive.application_deadline }}</td>
+
+            <td>
+                {% if drive.status == "Approved" %}
+                    <span class="text-success">Approved</span>
+                {% elif drive.status == "Rejected" %}
+                    <span class="text-danger">Rejected</span>
+                {% else %}
+                    <span class="text-warning">Pending</span>
+                {% endif %}
+            </td>
+
+            <td>{{ drive.created_at.strftime('%Y-%m-%d') }}</td>
+
+            <td>
+                <a href="/admin/approve/drive/{{ drive.id }}" class="btn btn-sm btn-success">Approve</a>
+                <a href="/admin/reject/drive/{{ drive.id }}" class="btn btn-sm btn-danger">Reject</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

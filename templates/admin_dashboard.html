@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<h2>Admin Dashboard</h2>
+
+<table>
+    <tr>
+        <th>Category</th>
+        <th>Total Count</th>
+    </tr>
+    <tr>
+        <td>Students</td>
+        <td>{{ total_students }}</td>
+    </tr>
+    <tr>
+        <td>Companies</td>
+        <td>{{ total_companies }}</td>
+    </tr>
+    <tr>
+        <td>Placement Drives</td>
+        <td>{{ total_drives }}</td>
+    </tr>
+    <tr>
+        <td>Applications</td>
+        <td>{{ total_applications }}</td>
+    </tr>
+</table>
+
+<a href="/logout" class="logout">Logout</a>
+<br>
+<a href="/admin/students">View All Students</a><br>
+<a href="/admin/companies">View All Companies</a><br>
+<a href="/admin/drives">View All Drives</a><br>
+<a href="/admin/applications">View All Applications</a>
+
+{% endblock %}

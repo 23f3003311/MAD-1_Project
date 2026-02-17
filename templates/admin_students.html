@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}All Students{% endblock %}
+
+{% block content %}
+<form method="GET" class="search-wrap">
+    <div class="search-bar">
+        <input
+            type="text"
+            name="search"
+            placeholder="Search by name / ID / contact"
+            value="{{ request.args.get('search', '') }}"
+        >
+        <button type="submit">🔍</button>
+    </div>
+</form>
+
+<h2>All Students</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>CGPA</th>
+        <th>Contact</th>
+        <th>Blacklisted</th>
+        <th>Action</th>
+    </tr>
+
+    {% for student in students %}
+    <tr>
+        <td>{{ student.id }}</td>
+        <td>{{ student.user.name }}</td>
+        <td>{{ student.user.email }}</td>
+        <td>{{ student.department }}</td>
+        <td>{{ student.cgpa }}</td>
+        <td>{{ student.contact }}</td>
+        <td>{{ "Yes" if student.user.is_blacklisted else "No" }}</td>
+        <td>
+            <a href="{{ url_for('blacklist_student', id=student.id) }}">
+                Blacklist
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="/admin/dashboard" class="logout">Back to Dashboard</a>
+
+{% endblock %}

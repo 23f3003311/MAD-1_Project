@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Student Dashboard</h2>
+
+<h4 class="mt-4">Approved Placement Drives</h4>
+
+<table class="table table-bordered table-striped mt-2">
+    <thead>
+        <tr>
+            <th>Company</th>
+            <th>Job Title</th>
+            <th>Eligibility</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for drive in drives %}
+        <tr>
+            <td>{{ drive.company.company_name }}</td>
+            <td>{{ drive.job_title }}</td>
+            <td>{{ drive.eligibility }}</td>
+            <td>{{ drive.application_deadline }}</td>
+            <td>{{ drive.status }}</td>
+            <td>
+                {% if drive.id in applied_drive_ids %}
+                    <span class="text-success">Applied</span>
+                {% else %}
+                    <a href="/student/apply/{{ drive.id }}" class="btn btn-sm btn-primary">Apply</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

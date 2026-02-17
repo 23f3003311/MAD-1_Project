@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Company Dashboard{% endblock %}
+{% block content %}
+
+<h2>Company Dashboard</h2>
+
+<div style="margin-bottom:20px;">
+    <p><b>Company:</b> {{ company.company_name }}</p>
+    <p><b>Description:</b> {{ company.description or "-" }}</p>
+    <p><b>HR Contact:</b> {{ company.hr_contact or "-" }}</p>
+    <p><b>Website:</b>
+        {% if company.website %}
+            <a href="{{ company.website }}" target="_blank">{{ company.website }}</a>
+        {% else %}-{% endif %}
+    </p>
+</div>
+
+<div style="text-align:center; margin-bottom:15px;">
+    <a href="{{ url_for('create_drive') }}" class="back-link" style="font-weight:bold;">➕ Create New Drive</a>
+</div>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Job Title</th>
+        <th>Deadline</th>
+        <th>Status</th>
+        <th>Applicants</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for d in drives %}
+    <tr>
+        <td>{{ d.id }}</td>
+        <td>{{ d.job_title }}</td>
+        <td>{{ d.application_deadline }}</td>
+        <td>{{ d.status }}</td>
+        <td>{{ applicant_counts[d.id] }}</td>
+        <td>
+            <a href="{{ url_for('company_view_drive_applications', drive_id=d.id) }}">View</a> |
+            <a href="{{ url_for('company_edit_drive', drive_id=d.id) }}">Edit</a> |
+            <a href="{{ url_for('company_close_drive', drive_id=d.id) }}">Close</a> |
+            <a href="{{ url_for('company_delete_drive', drive_id=d.id) }}" onclick="return confirm('Delete drive?')">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

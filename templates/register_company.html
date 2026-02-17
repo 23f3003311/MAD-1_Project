@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Company Registration{% endblock %}
+
+{% block content %}
+
+<h2>Company Registration</h2>
+
+<form method="POST">
+    <input name="name" placeholder="Representative Name" required>
+    <input name="email" type="email" placeholder="Official Email" required>
+    <input name="password" type="password" placeholder="Create Password" required>
+    <input name="company_name" placeholder="Company Name" required>
+    <input name="hr_contact" type="tel" placeholder="HR Contact Number">
+    <input name="website" type="url" placeholder="Company Website">
+    <textarea name="description" placeholder="Company Description"></textarea>
+    <button type="submit">Register</button>
+</form>
+
+<a href="/login" class="back-link">Already registered? Login</a>
+
+{% endblock %}

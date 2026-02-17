@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration{% endblock %}
+
+{% block content %}
+
+<h2>Student Registration</h2>
+
+<form method="POST">
+    <input name="name" placeholder="Full Name" required>
+    <input name="email" type="email" placeholder="Email Address" required>
+    <input name="password" type="password" placeholder="Create Password" required>
+    <input name="department" placeholder="Department" required>
+    <input name="cgpa" placeholder="CGPA" required>
+    <input name="contact" placeholder="Contact Number" required>
+    <button type="submit">Register</button>
+</form>
+
+<a href="/login" class="logout">Already have an account? Login</a>
+
+{% endblock %}

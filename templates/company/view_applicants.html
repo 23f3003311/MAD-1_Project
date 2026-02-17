@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Applicants for {{ drive.job_title }}</h2>
+
+<table class="table table-bordered">
+<tr>
+    <th>Student</th>
+    <th>Email</th>
+    <th>CGPA</th>
+    <th>Department</th>
+    <th>Status</th>
+    <th>Update</th>
+</tr>
+
+{% for app in applications %}
+<tr>
+    <td>{{ app.student.user.name }}</td>
+    <td>{{ app.student.user.email }}</td>
+    <td>{{ app.student.cgpa}}</td>
+    <td>{{ app.student.department }}</td>
+    <td>{{ app.status }}</td>
+    <td>
+        <a href="/company/application/{{ app.id }}/shortlist" class="btn btn-sm btn-primary">Shortlist</a>
+        <a href="/company/application/{{ app.id }}/select" class="btn btn-sm btn-success">Select</a>
+        <a href="/company/application/{{ app.id }}/reject" class="btn btn-sm btn-danger">Reject</a>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}

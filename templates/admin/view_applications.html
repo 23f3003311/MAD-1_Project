@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>All Applications</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>App ID</th>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>CGPA</th>
+            <th>Company</th>
+            <th>Job Title</th>
+            <th>Drive Status</th>
+            <th>Applied On</th>
+            <th>Application Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for app in applications %}
+        <tr>
+            <td>{{ app.id }}</td>
+
+            <td>{{ app.student.user.name }}</td>
+            <td>{{ app.student.user.email }}</td>
+            <td>{{ app.student.department }}</td>
+            <td>{{ app.student.cgpa }}</td>
+
+            <td>{{ app.drive.company.company_name }}</td>
+            <td>{{ app.drive.job_title }}</td>
+            <td>{{ app.drive.status }}</td>
+
+            <td>{{ app.application_date.strftime('%Y-%m-%d') }}</td>
+
+            <td>
+                {% if app.status == "Selected" %}
+                    <span class="text-success">Selected</span>
+                {% elif app.status == "Rejected" %}
+                    <span class="text-danger">Rejected</span>
+                {% elif app.status == "Shortlisted" %}
+                    <span class="text-primary">Shortlisted</span>
+                {% else %}
+                    <span class="text-warning">Applied</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
