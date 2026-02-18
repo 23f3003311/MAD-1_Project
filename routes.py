@@ -7,6 +7,8 @@ from flask_login import current_user
 from flask import abort
 from models import User, Company, Student, PlacementDrive, Application
 from datetime import datetime
+import os
+from werkzeug.utils import secure_filename
 
 def admin_required(f):
     @wraps(f)
@@ -18,6 +20,13 @@ def admin_required(f):
 
 
 def register_routes(app):
+    app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads", "resumes")
+    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5MB
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+    ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
+    def allowed_file(filename):
+        return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
     @app.route("/")
     def home():
@@ -34,7 +43,7 @@ def register_routes(app):
 
             if user and check_password_hash(user.password_hash, password):
                 if user.is_blacklisted:
-                    flash("Account is blacklisted.")
+                    
                     return redirect(url_for("login"))
 
                 login_user(user)
@@ -43,14 +52,14 @@ def register_routes(app):
                     return redirect(url_for("admin_dashboard"))
                 elif user.role == "company":
                     if user.approval_status != "Approved":
-                        flash("Your company account is not approved.")
+                       
                         return redirect(url_for("login"))
                     else:
                         return redirect(url_for("company_dashboard"))
                 else:
                     return redirect(url_for("student_dashboard"))
 
-            flash("Invalid credentials")
+            
 
         return render_template("login.html")
 
@@ -65,6 +74,8 @@ def register_routes(app):
     @app.route("/register/student", methods=["GET", "POST"])
     def register_student():
         if request.method == "POST":
+            if User.query.filter_by(email=request.form["email"]).first():
+                return "Email already registered.", 400
             user = User(
                 name=request.form["name"],
                 email=request.form["email"],
@@ -72,6 +83,7 @@ def register_routes(app):
                 role="student",
                 approval_status="Approved"
             )
+            
             db.session.add(user)
             db.session.commit()
 
@@ -84,7 +96,7 @@ def register_routes(app):
             db.session.add(student)
             db.session.commit()
 
-            flash("Student registered successfully")
+           
             return redirect(url_for("login"))
 
         return render_template("register_student.html")
@@ -93,6 +105,8 @@ def register_routes(app):
     @app.route("/register/company", methods=["GET", "POST"])
     def register_company():
         if request.method == "POST":
+            if User.query.filter_by(email=request.form["email"]).first():
+                return "Email already registered.", 400
             user = User(
                 name=request.form["name"],
                 email=request.form["email"],
@@ -113,7 +127,7 @@ def register_routes(app):
             db.session.add(company)
             db.session.commit()
 
-            flash("Company registered. Await admin approval.")
+           
             return redirect(url_for("login"))
 
         return render_template("register_company.html")
@@ -210,7 +224,7 @@ def register_routes(app):
             abort(403)
 
         if current_user.approval_status != "Approved":
-            flash("Your company account is not approved yet.")
+           
             return redirect(url_for("login"))
 
         company = Company.query.filter_by(user_id=current_user.id).first()
@@ -312,39 +326,29 @@ def register_routes(app):
 
 
 
-    @app.route("/student/apply/<int:drive_id>")
+    @app.route("/student/apply/<int:drive_id>", methods=["POST"])
     @login_required
     def apply_drive(drive_id):
         if current_user.role != "student":
-            return "Unauthorized", 403
+            abort(403)
 
+        student = Student.query.filter_by(user_id=current_user.id).first_or_404()
         drive = PlacementDrive.query.get_or_404(drive_id)
+        today = datetime.utcnow().date()
 
-        if drive.status != "Approved":
-            return "Drive not available."
+        if drive.status != "Approved" or drive.application_deadline < today:
+            
+            return redirect(url_for("student_dashboard"))
 
-        student = Student.query.filter_by(user_id=current_user.id).first()
-
-        existing = Application.query.filter_by(
-            student_id=student.id,
-            drive_id=drive.id
-        ).first()
-
+        existing = Application.query.filter_by(student_id=student.id, drive_id=drive.id).first()
         if existing:
-            return "Already applied."
+           
+            return redirect(url_for("student_dashboard"))
 
-        new_application = Application(
-            student_id=student.id,
-            drive_id=drive.id,
-            status="Applied"
-        )
-
-        db.session.add(new_application)
+        db.session.add(Application(student_id=student.id, drive_id=drive.id, status="Applied"))
         db.session.commit()
-
+       
         return redirect(url_for("student_dashboard"))
-
-
 
     @app.route("/admin/drives")
     @login_required
@@ -392,19 +396,32 @@ def register_routes(app):
         if current_user.role != "student":
             abort(403)
 
-        student = Student.query.filter_by(user_id=current_user.id).first()
+        student = Student.query.filter_by(user_id=current_user.id).first_or_404()
+        today = datetime.utcnow().date()
 
-        drives = PlacementDrive.query.filter_by(status="Approved").all()
+        # show only approved drives that are not expired
+        approved_drives = PlacementDrive.query.filter(
+            PlacementDrive.status == "Approved",
+            PlacementDrive.application_deadline >= today
+        ).order_by(PlacementDrive.created_at.desc()).all()
 
-        applied = Application.query.filter_by(student_id=student.id).all()
-        applied_drive_ids = {a.drive_id for a in applied}
+        applications = Application.query.filter_by(student_id=student.id).order_by(
+            Application.application_date.desc()
+        ).all()
+
+        applied_drive_ids = {a.drive_id for a in applications}
+        app_by_drive = {a.drive_id: a for a in applications}
 
         return render_template(
             "student/dashboard.html",
-            drives=drives,
-            applied_drive_ids=applied_drive_ids
+            student=student,
+            approved_drives=approved_drives,
+            applications=applications,
+            applied_drive_ids=applied_drive_ids,
+            app_by_drive=app_by_drive
         )
-    
+
+        
     @app.route("/company/drive/<int:drive_id>/edit", methods=["GET", "POST"])
     @login_required
     def company_edit_drive(drive_id):
@@ -426,7 +443,7 @@ def register_routes(app):
             drive.status = "Pending"
 
             db.session.commit()
-            flash("Drive updated. Sent for admin approval.")
+           
             return redirect(url_for("company_dashboard"))
 
         return render_template("company/edit_drive.html", drive=drive)
@@ -445,7 +462,7 @@ def register_routes(app):
 
         drive.status = "Closed"
         db.session.commit()
-        flash("Drive closed.")
+       
         return redirect(url_for("company_dashboard"))
 
     @app.route("/company/drive/<int:drive_id>/delete")
@@ -462,12 +479,12 @@ def register_routes(app):
 
         apps_count = Application.query.filter_by(drive_id=drive.id).count()
         if apps_count > 0:
-            flash("Cannot delete this drive because students have already applied. Close it instead.")
+           
             return redirect(url_for("company_dashboard"))
 
         db.session.delete(drive)
         db.session.commit()
-        flash("Drive deleted.")
+        
         return redirect(url_for("company_dashboard"))
 
     @app.route("/company/drive/<int:drive_id>/applications")
@@ -502,6 +519,81 @@ def register_routes(app):
 
         app_obj.status = status
         db.session.commit()
-        flash(f"Application updated to {status}.")
         return redirect(url_for("company_view_drive_applications", drive_id=app_obj.drive_id))
+    @app.route("/student/applications")
+    @login_required
+    def student_applications():
+        if current_user.role != "student":
+            abort(403)
+
+        student = Student.query.filter_by(user_id=current_user.id).first_or_404()
+
+        applications = Application.query.filter_by(student_id=student.id).order_by(
+            Application.application_date.desc()
+        ).all()
+
+        return render_template("student/applications.html", applications=applications)
+
+    @app.route("/student/history")
+    @login_required
+    def student_history():
+        if current_user.role != "student":
+            abort(403)
+
+        student = Student.query.filter_by(user_id=current_user.id).first_or_404()
+
+        selected_apps = Application.query.filter_by(
+            student_id=student.id,
+            status="Selected"
+        ).order_by(Application.application_date.desc()).all()
+
+        return render_template("student/history.html", applications=selected_apps)
+
+    @app.route("/student/profile", methods=["GET", "POST"])
+    @login_required
+    def student_profile():
+        if current_user.role != "student":
+            abort(403)
+
+        student = Student.query.filter_by(user_id=current_user.id).first_or_404()
+
+        if request.method == "POST":
+            # Update name (User)
+            name = request.form.get("name", "").strip()
+            if name:
+                current_user.name = name
+
+            # Update Student fields
+            student.department = request.form.get("department", student.department)
+            student.contact = request.form.get("contact", student.contact)
+
+            cgpa_raw = request.form.get("cgpa")
+            if cgpa_raw:
+                try:
+                    student.cgpa = float(cgpa_raw)
+                except ValueError:
+                   
+                    return redirect(url_for("student_profile"))
+
+            # Resume file upload
+            file = request.files.get("resume")
+            if file and file.filename:
+                if not allowed_file(file.filename):
+                    
+                    return redirect(url_for("student_profile"))
+
+                filename = secure_filename(f"student_{student.id}_{file.filename}")
+                save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(save_path)
+
+                # store relative path under static/
+                student.resume_path = f"uploads/resumes/{filename}"
+
+            db.session.commit()
+           
+            return redirect(url_for("student_dashboard"))
+
+        return render_template("student/profile.html", student=student)
+
+
 

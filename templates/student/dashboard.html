@@ -1,39 +1,130 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Student Dashboard</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Student Dashboard</h2>
 
-<h4 class="mt-4">Approved Placement Drives</h4>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('student_profile') }}" class="btn btn-outline-secondary btn-sm">Edit Profile / Resume</a>
+    <a href="{{ url_for('student_applications') }}" class="btn btn-outline-primary btn-sm">My Applications</a>
+    <a href="{{ url_for('student_history') }}" class="btn btn-outline-success btn-sm">Placement History</a>
+  </div>
+</div>
 
-<table class="table table-bordered table-striped mt-2">
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="mb-2">Profile Summary</h5>
+    <div class="row">
+      <div class="col-md-6">
+        <p class="mb-1"><b>Name:</b> {{ current_user.name }}</p>
+        <p class="mb-1"><b>Department:</b> {{ student.department or "-" }}</p>
+      </div>
+      <div class="col-md-6">
+        <p class="mb-1"><b>CGPA:</b> {{ student.cgpa if student.cgpa is not none else "-" }}</p>
+        <p class="mb-1"><b>Contact:</b> {{ student.contact or "-" }}</p>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <b>Resume:</b>
+      {% if student.resume_path %}
+        <a href="{{ url_for('static', filename=student.resume_path) }}" target="_blank">View</a>
+      {% else %}
+        <span class="text-muted">Not uploaded</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<h4 class="mt-2">Approved Drives (Not Expired)</h4>
+
+{% if approved_drives|length == 0 %}
+  <p class="text-muted mt-2">No approved drives available right now.</p>
+{% else %}
+  <table class="table table-bordered table-striped mt-2">
     <thead>
-        <tr>
-            <th>Company</th>
-            <th>Job Title</th>
-            <th>Eligibility</th>
-            <th>Deadline</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
+      <tr>
+        <th>Company</th>
+        <th>Job Title</th>
+        <th>Eligibility</th>
+        <th>Deadline</th>
+        <th>Your Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for drive in approved_drives %}
+      <tr>
+        <td>{{ drive.company.company_name }}</td>
+        <td>{{ drive.job_title }}</td>
+        <td>{{ drive.eligibility }}</td>
+        <td>{{ drive.application_deadline }}</td>
+
+        <td>
+          {% if drive.id in applied_drive_ids %}
+            <span class="badge bg-info text-dark">{{ app_by_drive[drive.id].status }}</span>
+            <div class="small text-muted">
+              Applied on: {{ app_by_drive[drive.id].application_date.strftime("%Y-%m-%d %H:%M") }}
+            </div>
+          {% else %}
+            <span class="text-muted">Not applied</span>
+          {% endif %}
+        </td>
+
+        <td>
+          {% if drive.id in applied_drive_ids %}
+            <span class="text-success">Applied</span>
+          {% else %}
+            <!-- POST apply (recommended) -->
+            <form method="POST" action="{{ url_for('apply_drive', drive_id=drive.id) }}">
+              <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<hr class="my-4"/>
+
+<h4>My Applications (Quick View)</h4>
+
+{% if applications|length == 0 %}
+  <p class="text-muted">No applications yet.</p>
+{% else %}
+  <table class="table table-bordered table-striped mt-2">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Job Title</th>
+        <th>Applied On</th>
+        <th>Status</th>
+      </tr>
     </thead>
     <tbody>
-        {% for drive in drives %}
-        <tr>
-            <td>{{ drive.company.company_name }}</td>
-            <td>{{ drive.job_title }}</td>
-            <td>{{ drive.eligibility }}</td>
-            <td>{{ drive.application_deadline }}</td>
-            <td>{{ drive.status }}</td>
-            <td>
-                {% if drive.id in applied_drive_ids %}
-                    <span class="text-success">Applied</span>
-                {% else %}
-                    <a href="/student/apply/{{ drive.id }}" class="btn btn-sm btn-primary">Apply</a>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
+      {% for app in applications %}
+      <tr>
+        <td>{{ app.drive.company.company_name }}</td>
+        <td>{{ app.drive.job_title }}</td>
+        <td>{{ app.application_date.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td>
+          {% if app.status == "Selected" %}
+            <span class="badge bg-success">{{ app.status }}</span>
+          {% elif app.status == "Rejected" %}
+            <span class="badge bg-danger">{{ app.status }}</span>
+          {% elif app.status == "Shortlisted" %}
+            <span class="badge bg-warning text-dark">{{ app.status }}</span>
+          {% else %}
+            <span class="badge bg-info text-dark">{{ app.status }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
     </tbody>
-</table>
+  </table>
+{% endif %}
 
 {% endblock %}

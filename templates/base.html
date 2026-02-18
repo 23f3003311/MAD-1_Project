@@ -4,6 +4,7 @@
     <title>{% block title %}Placement Portal{% endblock %}</title>
 
     <style>
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -187,11 +188,50 @@
 
     </style>
 </head>
+
 <body>
 
 <div class="container">
+
+    {% if current_user.is_authenticated %}
+    <div class="nav-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+
+        <div>
+            <strong>Placement Portal</strong>
+        </div>
+
+        <div style="display:flex; gap:15px; align-items:center;">
+
+            {% if current_user.role == "student" %}
+                <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('student_applications') }}">Applications</a>
+                <a href="{{ url_for('student_history') }}">History</a>
+                <a href="{{ url_for('student_profile') }}">Profile</a>
+
+            {% elif current_user.role == "company" %}
+                <a href="{{ url_for('company_dashboard') }}">Dashboard</a>
+
+            {% elif current_user.role == "admin" %}
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('view_students') }}">Students</a>
+                <a href="{{ url_for('view_companies') }}">Companies</a>
+                <a href="{{ url_for('admin_view_drives') }}">Drives</a>
+                <a href="{{ url_for('admin_view_applications') }}">Applications</a>
+            {% endif %}
+
+            <a href="{{ url_for('logout') }}" style="color:red; font-weight:bold;">Logout</a>
+        </div>
+
+    </div>
+
+    <hr>
+    {% endif %}
+
+
     {% block content %}{% endblock %}
+
 </div>
+
 
 </body>
 </html>

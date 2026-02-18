@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Placement History</h2>
+  <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+{% if applications|length == 0 %}
+  <p class="text-muted">No placements yet (Selected applications will appear here).</p>
+{% else %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Job Title</th>
+        <th>Selected On</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td>{{ app.drive.company.company_name }}</td>
+        <td>{{ app.drive.job_title }}</td>
+        <td>{{ app.application_date.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><span class="badge bg-success">{{ app.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% endblock %}
