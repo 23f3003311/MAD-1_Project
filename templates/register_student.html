@@ -7,12 +7,17 @@
 <h2>Student Registration</h2>
 
 <form method="POST">
-    <input name="name" placeholder="Full Name" required>
-    <input name="email" type="email" placeholder="Email Address" required>
-    <input name="password" type="password" placeholder="Create Password" required>
-    <input name="department" placeholder="Department" required>
-    <input name="cgpa" placeholder="CGPA" required>
-    <input name="contact" placeholder="Contact Number" required>
+    <input type="text" name="name" required minlength="2" placeholder="Full Name">
+
+    <input type="email" name="email" required placeholder="Email Address">
+
+    <input type="password" name="password" required minlength="6" placeholder="Create Password">
+
+    <input type="text" name="department" required placeholder="Department">
+
+    <input type="number" name="cgpa" required min="0" max="10" step="0.01" placeholder="CGPA (0-10)">
+
+    <input type="tel" name="contact" required pattern="[0-9]{10}" placeholder="10-digit Contact Number">
     <button type="submit">Register</button>
 </form>
 

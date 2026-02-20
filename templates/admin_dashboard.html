@@ -28,6 +28,64 @@
         <td>{{ total_applications }}</td>
     </tr>
 </table>
+<h3 style="margin-top: 30px;">Drive-wise Application Stats</h3>
+
+<label for="driveSelect"><b>Select Drive:</b></label>
+<select id="driveSelect" style="width:100%; padding:10px; margin:10px 0;">
+  {% for d in drives %}
+    <option value="{{ d.id }}">{{ d.company.company_name }} — {{ d.job_title }}</option>
+  {% endfor %}
+</select>
+
+<div id="driveMeta" style="margin: 10px 0; font-weight: bold;"></div>
+
+<canvas id="driveChart" style="max-width: 900px; margin: 20px auto; display:block;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let chartInstance = null;
+
+  async function loadDriveStats(driveId) {
+    const res = await fetch(`/api/admin/drive/${driveId}/stats`);
+    const data = await res.json();
+
+    document.getElementById("driveMeta").innerText =
+      `${data.company} — ${data.job_title}`;
+
+    const counts = [
+      data.stats.Applied || 0,
+      data.stats.Shortlisted || 0,
+      data.stats.Selected || 0,
+      data.stats.Rejected || 0
+    ];
+
+    const ctx = document.getElementById("driveChart");
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Applied", "Shortlisted", "Selected", "Rejected"],
+        datasets: [{
+          label: "Count",
+          data: counts
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  const select = document.getElementById("driveSelect");
+  select.addEventListener("change", () => loadDriveStats(select.value));
+
+  // load first drive on page load
+  if (select.value) loadDriveStats(select.value);
+</script>
+<br>
 
 <a href="/logout" class="logout">Logout</a>
 <br>

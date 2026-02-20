@@ -9,6 +9,9 @@ from models import User, Company, Student, PlacementDrive, Application
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
+from flask import jsonify
+from sqlalchemy import func
+
 
 def admin_required(f):
     @wraps(f)
@@ -141,13 +144,15 @@ def register_routes(app):
         total_companies = User.query.filter_by(role="company").count()
         total_drives = PlacementDrive.query.count()
         total_applications = Application.query.count()
+        drives = PlacementDrive.query.filter_by(status="Approved").order_by(PlacementDrive.created_at.desc()).all()
 
         return render_template(
             "admin_dashboard.html",
             total_students=total_students,
             total_companies=total_companies,
             total_drives=total_drives,
-            total_applications=total_applications
+            total_applications=total_applications,
+            drives=drives
         )
     @app.route("/admin/students")
     @login_required
@@ -595,5 +600,72 @@ def register_routes(app):
 
         return render_template("student/profile.html", student=student)
 
+    @app.route("/api/drives", methods=["GET"])
+    def api_drives():
+        today = datetime.utcnow().date()
+
+        drives = PlacementDrive.query.filter(
+            PlacementDrive.status == "Approved",
+            PlacementDrive.application_deadline >= today
+        ).order_by(PlacementDrive.created_at.desc()).all()
+
+        return jsonify([
+            {
+                "id": d.id,
+                "company": d.company.company_name,
+                "job_title": d.job_title,
+                "eligibility": d.eligibility,
+                "deadline": d.application_deadline.isoformat(),
+                "status": d.status,
+                "created_at": d.created_at.isoformat()
+            }
+            for d in drives
+        ])
+    @app.route("/api/admin/applications", methods=["GET"])
+    @login_required
+    @admin_required
+    def api_admin_applications():
+        applications = Application.query.order_by(
+            Application.application_date.desc()
+        ).all()
+
+        return jsonify([
+            {
+                "application_id": a.id,
+                "student_name": a.student.user.name,
+                "student_id": a.student_id,
+                "company": a.drive.company.company_name,
+                "drive_id": a.drive_id,
+                "job_title": a.drive.job_title,
+                "status": a.status,
+                "applied_at": a.application_date.isoformat()
+            }
+            for a in applications
+        ])
+
+    @app.route("/api/admin/drive/<int:drive_id>/stats", methods=["GET"])
+    @login_required
+    @admin_required
+    def api_drive_stats(drive_id):
+        drive = PlacementDrive.query.get_or_404(drive_id)
+
+        rows = (
+            db.session.query(Application.status, func.count(Application.id))
+            .filter(Application.drive_id == drive_id)
+            .group_by(Application.status)
+            .all()
+        )
+
+        stats = {"Applied": 0, "Shortlisted": 0, "Selected": 0, "Rejected": 0}
+        for status, count in rows:
+            if status in stats:
+                stats[status] = count
+
+        return jsonify({
+            "drive_id": drive.id,
+            "job_title": drive.job_title,
+            "company": drive.company.company_name,
+            "stats": stats
+        })
 
 

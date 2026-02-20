@@ -7,13 +7,19 @@
 <h2>Company Registration</h2>
 
 <form method="POST">
-    <input name="name" placeholder="Representative Name" required>
-    <input name="email" type="email" placeholder="Official Email" required>
-    <input name="password" type="password" placeholder="Create Password" required>
-    <input name="company_name" placeholder="Company Name" required>
-    <input name="hr_contact" type="tel" placeholder="HR Contact Number">
-    <input name="website" type="url" placeholder="Company Website">
-    <textarea name="description" placeholder="Company Description"></textarea>
+   <input type="text" name="name" required minlength="2" placeholder="Your Name">
+
+    <input type="email" name="email" required placeholder="Email Address">
+
+    <input type="password" name="password" required minlength="6" placeholder="Create Password">
+
+    <input type="text" name="company_name" required minlength="2" placeholder="Company Name">
+
+    <input type="tel" name="hr_contact" required pattern="[0-9]{10}" placeholder="HR Contact (10 digits)">
+
+    <input type="url" name="website" placeholder="Company Website (optional)">
+
+    <textarea name="description" required minlength="10" placeholder="Company Description"></textarea>
     <button type="submit">Register</button>
 </form>
 
