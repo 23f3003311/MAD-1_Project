@@ -24,7 +24,6 @@
             <td>{{ drive.company.company_name }}</td>
             <td>{{ drive.job_title }}</td>
 
-            <!-- Shortened description for better UI -->
             <td>
                 {{ drive.job_description[:40] }}
                 {% if drive.job_description|length > 40 %}...{% endif %}

@@ -22,8 +22,6 @@ def load_user(user_id):
 
 with app.app_context():
     db.create_all()
-
-    # Create admin if not exists
     if not User.query.filter_by(role="admin").first():
         admin = User(
             name="Admin",

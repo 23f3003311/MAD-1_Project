@@ -76,7 +76,7 @@
           {% if drive.id in applied_drive_ids %}
             <span class="text-success">Applied</span>
           {% else %}
-            <!-- POST apply (recommended) -->
+            
             <form method="POST" action="{{ url_for('apply_drive', drive_id=drive.id) }}">
               <button type="submit" class="btn btn-sm btn-primary">Apply</button>
             </form>

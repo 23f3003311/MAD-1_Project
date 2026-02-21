@@ -4,9 +4,6 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-# ======================
-# User Model
-# ======================
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -25,9 +22,7 @@ class User(db.Model, UserMixin):
     student = db.relationship("Student", backref="user", uselist=False)
 
 
-# ======================
-# Company Profile
-# ======================
+
 class Company(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -41,9 +36,7 @@ class Company(db.Model):
     drives = db.relationship("PlacementDrive", backref="company", lazy=True)
 
 
-# ======================
-# Student Profile
-# ======================
+
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -57,9 +50,6 @@ class Student(db.Model):
     applications = db.relationship("Application", backref="student", lazy=True)
 
 
-# ======================
-# Placement Drive
-# ======================
 class PlacementDrive(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -75,10 +65,6 @@ class PlacementDrive(db.Model):
 
     applications = db.relationship("Application", backref="drive", lazy=True)
 
-
-# ======================
-# Application Model
-# ======================
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
